@@ -1,0 +1,55 @@
+input=getDirectory("Choose Starting Images Folder");
+output=getDirectory("Choose output folder");
+list = getFileList(input);
+list = Array.sort(list);
+//Generating output folders
+zipfile = output+File.separator+"Counted ROIs";
+countfile= output+File.separator+"Count Mask";
+File.makeDirectory(zipfile);
+File.makeDirectory(countfile);
+
+roiManager("reset");
+print("\\Clear");
+
+Dialog.create("Set Threshold");
+Dialog.addNumber("Threshold Value:", 0);
+Dialog.addNumber("Prominance", 0);
+Dialog.addNumber("Min Size", 0);
+Dialog.show();
+tvalue=Dialog.getNumber();
+pvalue=Dialog.getNumber();
+svalue=Dialog.getNumber();
+
+for(f=0;f<list.length;f++)
+{
+open(input+list[f]);
+title=getTitle();
+roiManager("reset");
+resetMinAndMax;
+setMinAndMax(0, 65535);
+wait(200);
+run("Threshold...");
+resetThreshold;
+setThreshold(tvalue, 65535);
+run("Find Maxima...", "prominence="+pvalue+" above output=[Segmented Particles]");
+	run("Analyze Particles...", "size="+svalue+"-Infinity pixel summarize add composite");
+	selectWindow(title+" Segmented");  
+	rename(title);
+	run("Grays");
+	saveAs("Tiff", countfile+File.separator+title+" Mask.tif");
+	count = roiManager("Count");
+	if( roiManager("Count") > 0 )
+		{
+		run("Create Selection");
+roiManager("Add");
+	roiManager("save", zipfile+File.separator+title+" ROI Counts.zip");
+	roiManager("reset");
+		}
+close("*");
+}
+selectWindow("Summary");
+Table.rename("Summary", "Results");
+saveAs("Results",output+"Counts ("+tvalue+"-"+pvalue+"-"+svalue+".csv");
+selectWindow("ROI Manager"); run("Close");
+run("Close All");
+
