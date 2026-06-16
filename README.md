@@ -38,8 +38,8 @@ This macro will open images and prompt for selection of an ROI (here it sould be
 - Output/results will include:
   - Excel file with channel info
   - Folders containing single channel and merged image files of the ROIs
- 
-  **3. HEK PLA Thresholding**
+
+**3. HEK PLA Thresholding**
   This macro allows you to open the merged images of individual cells for initial thresholding of the secondary ROI (transfection marker, cell compartment, etc) and PLA signal (signal of interest). ROI thresholding will be unique to each image, and done manually by user for accurate isolation/selection. Output will include cleared images of the secondary ROI channel and PLA. PLA thresholding will be compiled to determine an average or baseline thresholding value tobe used for puncta analysis.
   - Starting image folder
   - Output folder for images, ROIs and results
@@ -58,8 +58,8 @@ This macro will open images and prompt for selection of an ROI (here it sould be
   - A folder containing the individual thresholding ROIs for each image, annotated with the thresholding value ("Txx")
   - .csv file of recorded thresholding values for both channels
   - .csv file of results, which include the ROI area based on the pixel scale
- 
-    **4. HEK PLA Puncta Counts**
+
+**4. HEK PLA Puncta Counts**
  This macro takes selected single channel cleared ROI images and performs maxima detection and particle analysis using the recorded thresholding value. NOTE: This is to quantify puncta, not examine signal intensity
   - Starting image folder (single channel cleared images of the Measurement channel from macro 3)
   - Output folder for ROIs
