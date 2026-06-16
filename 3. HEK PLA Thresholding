@@ -1,0 +1,115 @@
+input = getDirectory("Choose folder for starting images");
+File.setDefaultDir(input);
+output=getDirectory("Choose output folder");
+list = getFileList(input);
+list = Array.sort(list);
+var indvthreshold, noise, areapercent, scale, minsize, maxsize, name, noise, count, axonlength, axonflag, name, newname;
+var string, j, d, sum, indexstring, indexnum, tvalue, Label2Array, resultlist, FolderCreate, foldername, FO, findex, LabelArray, CS, nindex, length, axonlength;
+
+//Channel/Scale/Thresholding parameters
+Dialog.create("Experiment Info");
+		Dialog.addNumber("Pixel Scale:", 0.10049847,8,8,"(um/pixel)");
+		Dialog.addNumber("How many starting channels?",4,0,1,"channel/s");
+		Dialog.show();
+	scale = Dialog.getNumber();
+	numChan = Dialog.getNumber();
+
+	channel= newArray("C1","C2","C3","C4");
+	chan=Array.trim(channel, numChan);
+
+//Assigning which channel will be the one for initial thresholding (determine ROI) and the channel that will be measured using said ROI
+Dialog.create("Channel Assignment");
+		Dialog.addChoice("Channel for Thresholding", chan);
+		Dialog.addString("Channel Name", "");
+		Dialog.addChoice("Channel to Measure", chan);
+		Dialog.addString("Channel Name", "");
+		Dialog.show();
+		
+	tchan=Dialog.getChoice();
+	tname=Dialog.getString();
+	mchan=Dialog.getChoice();
+	mname=Dialog.getString();
+
+run("Set Measurements...", "area display redirect=None decimal=5");
+roiManager("reset");
+print("\\Clear");
+print("Channels:");
+print("Thresholding: "+tchan+" "+tname);
+print("To Measure: "+mchan+" "+mname);
+
+string="Label, C1 Threshold, C2 Threshold\n";
+
+//Generating output folders
+File.makeDirectory(output+File.separator+tname);
+File.makeDirectory(output+File.separator+mname);
+zipfile = output+File.separator+tname+" ROIs";
+File.makeDirectory(zipfile);
+
+for(f=0;f<list.length;f++)
+{
+open(input+list[f]);
+x=0;
+y=0;
+a=65535;
+	title=getTitle();
+  	
+selectImage(title);
+run("Split Channels");
+
+selectWindow(tchan+"-"+title);
+roiManager("reset");
+getDimensions(width, height, channels, slices, frames);
+run("Properties...", "channels=1 slices=1 frames=1 unit=um pixel_width="+scale+" pixel_height="+scale+" voxel_depth=1");
+resetThreshold;
+run("Grays");
+setAutoThreshold("Default dark 16-bit no-reset");
+run("Enhance Contrast", "saturated=0.35");
+run("Enhance Contrast", "saturated=0.75");
+run("In [+]");
+run("In [+]");
+run("In [+]");
+run("Threshold...");
+waitForUser("set and record threshold");
+getThreshold(x,a);
+setThreshold(x, 65535);
+run("Create Selection");
+roiManager("Add");
+roiManager("Select", 0);
+roiManager("Rename", title+" "+tchan+" "+x);
+roiManager("save", zipfile+File.separator+title+tname+" T"+x+"_ROI.zip");
+run("Clear Outside");
+roiManager("deselect");
+selectWindow(tchan+"-"+title);
+saveAs("Tiff", output+File.separator+tname+File.separator+tchan+"-"+title);
+roiManager("measure");
+
+selectWindow(mchan+"-"+title);
+roiManager("Select", 0);
+run("Clear Outside");
+roiManager("deselect");
+selectWindow(mchan+"-"+title);
+saveAs("Tiff", output+File.separator+mname+File.separator+mchan+"-"+title);
+resetThreshold;
+run("Grays");
+run("Enhance Contrast", "saturated=0.75");
+run("In [+]");
+run("In [+]");
+run("In [+]");
+run("In [+]");
+run("Threshold...");
+waitForUser("set and record threshold");
+getThreshold(y,a);
+string=string+title+","+","+y+"\n";
+roiManager("reset");
+close("*");
+}
+
+ 	File.saveString(mstring, output+File.separator+mname+" Thresholding.csv");
+selectWindow("Log");
+saveAs("Text", output+"Thresholding Summary.csv");
+selectWindow("Results");saveAs("Results",output+File.separator+tname+" Area.csv");
+selectWindow("Log"); run("Close");
+selectWindow("Results"); run("Close");
+selectWindow("ROI Manager"); run("Close");
+run("Close All");
+
